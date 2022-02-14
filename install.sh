@@ -4,11 +4,11 @@
 
 
 # install requirements
-pip install torch==1.9.1+cu111 torchaudio -f https://download.pytorch.org/whl/cu111/torch_stable.html
+pip install torch==1.9.1+cu102 torchaudio -f https://download.pytorch.org/whl/cu102/torch_stable.html
 # install torchaudio, thus fairseq installation will not install newest torchaudio and torch(would replace torch-1.9.1)
 pip install lmdb
-pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.9.1+cu111.html
-pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-1.9.1+cu111.html
+pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.9.1+cu102.html
+pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-1.9.1+cu102.html
 pip install torch-geometric==1.7.2
 pip install tensorboardX==2.4.1
 pip install ogb==1.3.2
