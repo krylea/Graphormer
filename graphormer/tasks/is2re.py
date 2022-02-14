@@ -263,7 +263,7 @@ class IS2RETask(FairseqTask):
         '''
         print(" > Loading {} ...".format(split))
 
-        db_path = str(Path(self.cfg.data) / split + ".lmdb")
+        db_path = str(Path(self.cfg.data) / f"{split}.lmdb")
         #db_path = str(Path(self.cfg.data) / split / "data.lmdb")
         lmdb_dataset = LMDBDataset(db_path)
         pbc_dataset = PBCDataset(lmdb_dataset)
