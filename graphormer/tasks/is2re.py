@@ -248,6 +248,7 @@ class IS2RETask(FairseqTask):
         return None
 
     def load_dataset(self, split, combine=False, **kwargs):
+        '''
         assert split in [
             "train",
             "val_id",
@@ -259,9 +260,11 @@ class IS2RETask(FairseqTask):
             "test_ood_cat",
             "test_ood_both",
         ], "invalid split: {}!".format(split)
+        '''
         print(" > Loading {} ...".format(split))
 
-        db_path = str(Path(self.cfg.data) / split / "data.lmdb")
+        db_path = str(Path(self.cfg.data) / split + ".lmdb")
+        #db_path = str(Path(self.cfg.data) / split / "data.lmdb")
         lmdb_dataset = LMDBDataset(db_path)
         pbc_dataset = PBCDataset(lmdb_dataset)
 
