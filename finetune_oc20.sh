@@ -57,4 +57,4 @@ fairseq-train --user-dir ./graphormer  \
        --max-update $total_steps --log-interval 100 --log-format simple \
        --save-interval-updates 5000 --validate-interval-updates 2500 --keep-interval-updates 30 --no-epoch-checkpoints  \
        --save-dir $save_dir --layers $layers --blocks $blocks --required-batch-size-multiple 1  --node-loss-weight $node_loss_weight \
-       --finetune_from_model ./ckpts/base_run/checkpoint_last.pt
+       --finetune-from-model ./ckpts/base_run/checkpoint_last.pt
