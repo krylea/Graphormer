@@ -13,7 +13,7 @@
 
 lr=${lr:-2e-5}
 warmup_steps=${warmup_steps:-0}
-total_steps=${total_steps:-100}
+total_steps=${total_steps:-5000}
 layers=${layers:-12}
 hidden_size=${hidden_size:-768}
 num_head=${num_head:-48}
@@ -46,7 +46,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/ocp/adsorbate-data/inputs/1 --valid-subset val --best-checkpoint-metric loss \
+       /scratch/hdd001/home/$USER/carol-lmdb --valid-subset val --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
@@ -55,6 +55,6 @@ fairseq-train --user-dir ./graphormer  \
        --fp16 --fp16-init-scale 4 --fp16-scale-window 256 --tensorboard-logdir $tsb_dir \
        --embed-dim $hidden_size --ffn-embed-dim $hidden_size --attention-heads $num_head \
        --max-update $total_steps --log-interval 100 --log-format simple \
-       --save-interval-updates 5000 --validate-interval-updates 2500 --keep-interval-updates 30 --no-epoch-checkpoints  \
+       --save-interval-updates 500 --validate-interval-updates 250 --keep-interval-updates 30 --no-epoch-checkpoints  \
        --save-dir $save_dir --layers $layers --blocks $blocks --required-batch-size-multiple 1  --node-loss-weight $node_loss_weight \
        --finetune-from-model ./ckpts/base_run/checkpoint_last.pt
