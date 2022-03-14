@@ -136,7 +136,7 @@ def pad_1d(samples: Sequence[Tensor], fill=0, multiplier=8):
 
 
 class AtomDataset(FairseqDataset):
-    def __init__(self, dataset, keyword):
+    def __init__(self, dataset, keyword, add_atoms=()):
         super().__init__()
         self.dataset = dataset
         self.keyword = keyword
@@ -203,6 +203,15 @@ class AtomDataset(FairseqDataset):
         self.atom_mapper = torch.full((128,), unk_idx)
         for idx, atom in enumerate(self.atom_list):
             self.atom_mapper[atom] = idx + 1  # reserve 0 for paddin
+        
+        # note: this solution only works if there are less than (63-unk_idx) atoms being added
+        # also: maybe re-initialize embeddings for new atoms? not sure if matters or not
+        if len(add_atoms) > 0:
+            self.add_atoms = add_atoms
+            for i, atom_idx in enumerate(add_atoms):
+                #self.atom_list.append(atom_idx)
+                self.atom_mapper[atom_idx] = unk_idx + 1 + i
+
 
     @lru_cache(maxsize=16)
     def __getitem__(self, index):
@@ -242,6 +251,7 @@ class IS2RETask(FairseqTask):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument("data", metavar="FILE", help="directory for data")
+        parser.add_argument("--add_atoms", nargs='+', default=(), help="additional atoms to add")
 
     @property
     def target_dictionary(self):
@@ -268,7 +278,7 @@ class IS2RETask(FairseqTask):
         lmdb_dataset = LMDBDataset(db_path)
         pbc_dataset = PBCDataset(lmdb_dataset)
 
-        atoms = AtomDataset(pbc_dataset, "atoms")
+        atoms = AtomDataset(pbc_dataset, "atoms", add_atoms=self.cfg.add_atoms)
         tags = KeywordDataset(pbc_dataset, "tags")
         real_mask = KeywordDataset(pbc_dataset, "real_mask")
 
