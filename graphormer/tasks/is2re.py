@@ -251,7 +251,7 @@ class IS2RETask(FairseqTask):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument("data", metavar="FILE", help="directory for data")
-        parser.add_argument("--add_atoms", nargs='+', default=(), help="additional atoms to add")
+        parser.add_argument("--add_atoms", nargs='+', type=int, default=(), help="additional atoms to add")
 
     @property
     def target_dictionary(self):
