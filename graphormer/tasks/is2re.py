@@ -321,7 +321,7 @@ class IS2RETask(FairseqTask):
             mask = torch.ones(64, args.embed_dim)
             unk_idx = 57
             for i, _ in enumerate(args.add_atoms):
-                mask[unk_idx+i, :] = 0
+                mask[unk_idx+i+1, :] = 0
             mask = mask.bool()
             def hook_fn(grad):
                 out = grad.clone()
