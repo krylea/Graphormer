@@ -252,6 +252,7 @@ class IS2RETask(FairseqTask):
     def add_args(cls, parser):
         parser.add_argument("data", metavar="FILE", help="directory for data")
         parser.add_argument("--add_atoms", nargs='+', type=int, default=(), help="additional atoms to add")
+        parser.add_argument("--freeze", action='store_true', help="freeze weights")
 
     @property
     def target_dictionary(self):
@@ -312,3 +313,24 @@ class IS2RETask(FairseqTask):
 
         print("| Loaded {} with {} samples".format(split, len(dataset)))
         self.datasets[split] = dataset
+
+    def build_model(self, args):
+        model = super().build_model(args)
+
+        if len(args.add_atoms) > 0 and args.freeze:
+            mask = torch.ones(64, args.embed_dim)
+            unk_idx = 57
+            for i, _ in enumerate(args.add_atoms):
+                mask[unk_idx+i, :] = 0
+            def hook_fn(grad):
+                out = grad.clone()
+                out[mask] = 0
+                return out
+            
+            for p in model.parameters():
+                p.requires_grad = False
+            model.atom_encoder.weight.requires_grad = True
+            model.atom_encoder.weight.register_hook(hook_fn)
+
+        return model
+
