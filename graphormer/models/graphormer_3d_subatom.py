@@ -299,7 +299,7 @@ class Graphormer3DSubatom(BaseFairseqModel):
         
         embed_weight = torch.load(args.atom_embed_path)
         atom_base_dim = embed_weight.size(1)
-        augmented_embed_weight = torch.cat([torch.zeros(atom_base_dim), embed_weight], dim=0)
+        augmented_embed_weight = torch.cat([torch.zeros(1,atom_base_dim), embed_weight], dim=0)
         self.atom_types = embed_weight.size(0) + 1
         self.atom_embed = nn.Embedding(
             self.atom_types, atom_base_dim, padding_idx=0
