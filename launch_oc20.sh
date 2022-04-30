@@ -46,7 +46,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/ocp/adsorbate-data/inputs/1 --valid-subset val --best-checkpoint-metric loss \
+       /scratch/hdd001/home/$USER/ocp/data/is2re/all --valid-subset val_id,val_ood_ads,val_ood_cat,val_ood_both --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch graphormer3dsubatom_base  \
        --atom-embed-path element_tensors.pt \
