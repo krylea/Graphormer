@@ -362,10 +362,11 @@ class Graphormer3DSubatom(BaseFairseqModel):
         atom_embeds = self.atom_embed(atoms)
 
         dist_embeds = self.atom_dist_projection(atom_embeds)
+        emb_dim = dist_embeds.size(-1)
         edge_embeds = self.dist_encoder(
             torch.cat([
-                dist_embeds.view(n_graph, n_node, 1, dist_embeds.size(-1)), 
-                dist_embeds.view(n_graph, 1, n_node, dist_embeds.size(-1))
+                dist_embeds.view(n_graph, n_node, 1, emb_dim).expand(n_graph, n_node, n_node, emb_dim), 
+                dist_embeds.view(n_graph, 1, n_node, emb_dim).expand(n_graph, n_node, n_node, emb_dim)
             ], dim=-1)
         )
     
