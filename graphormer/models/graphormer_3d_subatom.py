@@ -368,7 +368,7 @@ class Graphormer3DSubatom(BaseFairseqModel):
                 dist_embeds.view(n_graph, n_node, 1, emb_dim).expand(n_graph, n_node, n_node, emb_dim), 
                 dist_embeds.view(n_graph, 1, n_node, emb_dim).expand(n_graph, n_node, n_node, emb_dim)
             ], dim=-1)
-        )
+        ) / torch.sqrt(emb_dim * 2)
     
 
         #edge_type = atoms.view(n_graph, n_node, 1) * self.atom_types + atoms.view(
