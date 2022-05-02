@@ -10,6 +10,9 @@
 #SBATCH --cpus-per-gpu=1
 #SBATCH --mem=25GB
 
+source /scratch/hdd001/home/kaselby/graphormer-env-10.2/bin/activate
+
+run_name=$1
 
 lr=${lr:-3e-4}
 warmup_steps=${warmup_steps:-10000}
@@ -24,8 +27,8 @@ blocks=${blocks:-4}
 node_loss_weight=${node_loss_weight:-15}
 update_freq=${update_freq:-1}
 
-save_dir=./ckpts
-tsb_dir=./tsbs
+save_dir=./ckpts/${run_name}
+tsb_dir=./tsbs/${run_name}
 mkdir -p $save_dir
 
 echo -e "\n\n"
