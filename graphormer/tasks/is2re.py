@@ -33,6 +33,7 @@ class LMDBDataset:
             readonly=True,
             readahead=True,
             meminit=False,
+            lock=False
         )
         self.len: int = self.env.stat()["entries"]
 
