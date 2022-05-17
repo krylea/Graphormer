@@ -306,9 +306,11 @@ class Graphormer3DSubatom(BaseFairseqModel):
         self.atom_embed = nn.Embedding(
             self.atom_types, atom_base_dim, padding_idx=0
         )
-        self.atom_embed.requires_grad = False
         with torch.no_grad(): #may not be necessary?
             self.atom_embed.weight.copy_(augmented_embed_weight)
+        for param in self.atom_embed.parameters():
+            param.requires_grad = False
+
 
         self.atom_embed_projection = nn.Linear(atom_base_dim, self.args.embed_dim)
         self.atom_dist_projection = nn.Linear(atom_base_dim, self.args.embed_dim)
