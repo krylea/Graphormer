@@ -303,7 +303,7 @@ class Graphormer3DSubatom(BaseFairseqModel):
         atom_base_dim = embed_weight.size(1)
         augmented_embed_weight = torch.cat([torch.zeros(1,atom_base_dim), embed_weight], dim=0)
         self.atom_types = embed_weight.size(0) + 1
-        self.atom_embed = nn.Embedding.from_pretrained(
+        self.atom_embedding = nn.Embedding.from_pretrained(
             augmented_embed_weight, freeze=True, padding_idx=0
         )
 
@@ -346,6 +346,11 @@ class Graphormer3DSubatom(BaseFairseqModel):
             self.args.embed_dim, self.args.attention_heads
         )
 
+    def parameters(self, recurse=True): #ensure embedding is not optimized since it is changing despite requiresgrad=False
+        for name, param in self.named_parameters(recurse=recurse):
+            if not "atom_embedding" in name:
+                yield param
+
     def set_num_updates(self, num_updates):
         self.num_updates = num_updates
         return super().set_num_updates(num_updates)
@@ -358,7 +363,7 @@ class Graphormer3DSubatom(BaseFairseqModel):
         dist: Tensor = delta_pos.norm(dim=-1)
         delta_pos /= dist.unsqueeze(-1) + 1e-5
 
-        atom_embeds = self.atom_embed(atoms)
+        atom_embeds = self.atom_embedding(atoms)
 
         dist_embeds = self.atom_dist_projection(atom_embeds)
         emb_dim = dist_embeds.size(-1)
