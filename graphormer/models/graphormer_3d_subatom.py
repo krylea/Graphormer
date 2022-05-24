@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+from subatom_modules import FixedAtomEmbedding
+
 from typing import Callable, Tuple
 
 import torch
@@ -298,14 +300,9 @@ class Graphormer3DSubatom(BaseFairseqModel):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        
-        embed_weight = torch.load(args.atom_embed_path)
-        atom_base_dim = embed_weight.size(1)
-        augmented_embed_weight = torch.cat([torch.zeros(1,atom_base_dim), embed_weight], dim=0)
-        self.atom_types = embed_weight.size(0) + 1
-        self.atom_embedding = nn.Embedding.from_pretrained(
-            augmented_embed_weight, freeze=True, padding_idx=0
-        )
+
+        self.atom_embedding = FixedAtomEmbedding.from_file(args.atom_embed_path)
+        atom_base_dim = self.atom_embedding.atom_base_dim
 
         self.atom_embed_projection = nn.Linear(atom_base_dim, self.args.embed_dim)
         self.atom_dist_projection = nn.Linear(atom_base_dim, self.args.embed_dim)
@@ -345,11 +342,6 @@ class Graphormer3DSubatom(BaseFairseqModel):
         self.node_proc: Callable[[Tensor, Tensor, Tensor], Tensor] = NodeTaskHead(
             self.args.embed_dim, self.args.attention_heads
         )
-
-    def parameters(self, recurse=True): #ensure embedding is not optimized since it is changing despite requiresgrad=False
-        for name, param in self.named_parameters(recurse=recurse):
-            if not "atom_embedding" in name:
-                yield param
 
     def set_num_updates(self, num_updates):
         self.num_updates = num_updates
