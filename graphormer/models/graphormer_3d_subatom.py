@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from subatom_modules import FixedAtomEmbedding
+from .subatom_modules import FixedAtomEmbedding
 
 from typing import Callable, Tuple
 
