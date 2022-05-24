@@ -1,6 +1,7 @@
 
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 
 class FixedAtomEmbedding(nn.Module):
     @classmethod
@@ -8,17 +9,17 @@ class FixedAtomEmbedding(nn.Module):
         embed_weight = torch.load(tensor_file)
         return cls(embed_weight)
 
-    def __init__(self, atom_tensors):
+    def __init__(self, atom_tensors, padding_idx=0):
         super().__init__()
         self.atom_base_dim = atom_tensors.size(1)
         augmented_embed_weight = torch.cat([torch.zeros(1,self.atom_base_dim), atom_tensors], dim=0)
-        self.embed = nn.Embedding.from_pretrained(augmented_embed_weight, freeze=True, padding_idx=0)
+        self.register_buffer('embed', augmented_embed_weight)
+        self.padding_idx=padding_idx
 
-    def parameters(self, recurse=True): #ensure embedding is not optimized since it is changing despite requiresgrad=False
-        yield from ()
+        #self.embed = nn.Embedding.from_pretrained(augmented_embed_weight, freeze=True, padding_idx=0)
 
     def forward(self, indices):
-        return self.embed(indices)
+        return F.embedding(indices, self.embed, self.padding_idx, None, 2, False, False)
 
 
 class SubshellEmbedding(nn.Module):
