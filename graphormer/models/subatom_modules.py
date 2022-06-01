@@ -35,4 +35,4 @@ class SubshellEmbedding(nn.Module):
         return
 
     def forward(self, atom_indices):
-        return
+        atom_vectors = 

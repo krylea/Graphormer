@@ -10,6 +10,7 @@
 #SBATCH --cpus-per-gpu=1
 #SBATCH --mem=25GB
 
+run_name=$1
 
 lr=${lr:-2e-5}
 warmup_steps=${warmup_steps:-0}
@@ -24,8 +25,8 @@ blocks=${blocks:-4}
 node_loss_weight=${node_loss_weight:-15}
 update_freq=${update_freq:-1}
 
-save_dir=./ckpts
-tsb_dir=./tsbs
+save_dir=./ckpts/${run_name}
+tsb_dir=./tsbs/${run_name}
 mkdir -p $save_dir
 
 echo -e "\n\n"
@@ -46,7 +47,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/carol-lmdb --valid-subset val --best-checkpoint-metric loss \
+       /scratch/hdd001/home/$USER/ocp/element_data/17 --valid-subset val --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
@@ -57,4 +58,4 @@ fairseq-train --user-dir ./graphormer  \
        --max-update $total_steps --log-interval 100 --log-format simple \
        --save-interval-updates 500 --validate-interval-updates 250 --keep-interval-updates 30 --no-epoch-checkpoints  \
        --save-dir $save_dir --layers $layers --blocks $blocks --required-batch-size-multiple 1  --node-loss-weight $node_loss_weight \
-       --finetune-from-model ./ckpts/base_run/checkpoint_last.pt --add_atoms 58
+       --finetune-from-model ./ckpts/subatom_by_element/checkpoint_last.pt
