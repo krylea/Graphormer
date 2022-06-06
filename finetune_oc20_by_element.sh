@@ -10,13 +10,13 @@
 #SBATCH --cpus-per-gpu=1
 #SBATCH --mem=25GB
 
-source /scratch/hdd001/home/kaselby/graphormer-env-10.2/bin/activate
-
 run_name=$1
+element=$2
+split=$3
 
-lr=${lr:-3e-4}
-warmup_steps=${warmup_steps:-10000}
-total_steps=${total_steps:-1000000}
+lr=${lr:-2e-5}
+warmup_steps=${warmup_steps:-0}
+total_steps=${total_steps:-5000}
 layers=${layers:-12}
 hidden_size=${hidden_size:-768}
 num_head=${num_head:-48}
@@ -49,16 +49,15 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/ocp/data/is2re/all --valid-subset val_id,val_ood_ads,val_ood_cat,val_ood_both \
-       --train-subset train --best-checkpoint-metric loss \
+       /scratch/hdd001/home/$USER/ocp/element_data/$element --valid-subset val --train-subset train_$split --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
-       --task is2re --criterion mae_deltapos --arch graphormer3dsubatom_base  \
-       --atom-embed-path element_tensors2.pt \
+       --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
        --lr-scheduler polynomial_decay --lr $lr --warmup-updates $warmup_steps --total-num-update $total_steps --batch-size $batch_size \
        --dropout 0.0 --attention-dropout 0.1 --weight-decay 0.001 --update-freq $update_freq --seed $seed \
        --fp16 --fp16-init-scale 4 --fp16-scale-window 256 --tensorboard-logdir $tsb_dir \
        --embed-dim $hidden_size --ffn-embed-dim $hidden_size --attention-heads $num_head \
        --max-update $total_steps --log-interval 100 --log-format simple \
-       --save-interval-updates 5000 --validate-interval-updates 2500 --keep-interval-updates 30 --no-epoch-checkpoints  \
-       --save-dir $save_dir --layers $layers --blocks $blocks --required-batch-size-multiple 1  --node-loss-weight $node_loss_weight
+       --save-interval-updates 500 --validate-interval-updates 250 --keep-interval-updates 30 --no-epoch-checkpoints  \
+       --save-dir $save_dir --layers $layers --blocks $blocks --required-batch-size-multiple 1  --node-loss-weight $node_loss_weight \
+       --finetune-from-model ./ckpts/subatom_by_element/checkpoint_last.pt
