@@ -16,7 +16,7 @@ split=$3
 
 lr=${lr:-2e-5}
 warmup_steps=${warmup_steps:-0}
-total_steps=${total_steps:-5000}
+total_steps=${total_steps:-10000}
 layers=${layers:-12}
 hidden_size=${hidden_size:-768}
 num_head=${num_head:-48}
