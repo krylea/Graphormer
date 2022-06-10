@@ -342,6 +342,7 @@ class Graphormer3DSubatom(BaseFairseqModel):
         self.node_proc: Callable[[Tensor, Tensor, Tensor], Tensor] = NodeTaskHead(
             self.args.embed_dim, self.args.attention_heads
         )
+        
 
     def set_num_updates(self, num_updates):
         self.num_updates = num_updates
