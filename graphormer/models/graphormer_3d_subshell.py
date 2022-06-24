@@ -385,7 +385,7 @@ class Graphormer3DSubshell(BaseFairseqModel):
 
         graph_node_feature = (
             self.tag_encoder(tags)
-            + self.atom_embed_projection(atom_embeds)
+            + atom_embeds
             + self.edge_proj(edge_features.sum(dim=-2))
         )
 
