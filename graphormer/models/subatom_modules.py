@@ -27,7 +27,8 @@ class SubshellEmbedding(nn.Module):
     def __init__(self, embed_dim, n_max, l_max, atom_configs, occupancy_correction=False):
         super().__init__()
         self.embed_dim = embed_dim
-        self.register_buffer('atom_configs', atom_configs)   # Nele x nmax*lmax
+        augmented_configs = torch.cat([torch.zeros(1,n_max*l_max), atom_configs], dim=0)
+        self.register_buffer('atom_configs', augmented_configs)   # Nele x nmax*lmax
         self.subshell_embeds = nn.Parameter(torch.empty(n_max * l_max, embed_dim))
         self.occupancy_correction = occupancy_correction
         if occupancy_correction:
@@ -71,6 +72,6 @@ class SubshellValenceEmbedding(nn.Module):
     
     def forward(self, atom_indices):
         valence_vectors = self.valence_embeds(atom_indices)
-        core_vectors = self.valence_embeds(atom_indices)
+        core_vectors = self.core_embeds(atom_indices)
         return torch.cat([valence_vectors, core_vectors], dim=-1)
 
