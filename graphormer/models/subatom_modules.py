@@ -52,17 +52,23 @@ class SubshellEmbedding(nn.Module):
         return atom_vectors
 
 class SubshellValenceEmbedding(nn.Module):
+    @classmethod
+    def from_file(cls, valence_file, core_file, embed_dim, hidden_dim, n_max, l_max, occupancy_correction):
+        valence_configs = torch.load(valence_file)
+        core_configs = torch.load(core_file)
+        return cls(embed_dim, hidden_dim, n_max, l_max, valence_configs, core_configs, occupancy_correction)
+
     def __init__(self, embed_dim, hidden_dim, n_max, l_max, valence_configs, core_configs, occupancy_correction=False):
         self.valence_embeds = SubshellEmbedding(embed_dim, n_max, l_max, valence_configs, occupancy_correction)
         self.core_embeds = SubshellEmbedding(embed_dim, n_max, l_max, core_configs, occupancy_correction)
-        self.merge = nn.Sequential(
-            nn.Linear(embed_dim*2, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, embed_dim)
-        )
+        #self.merge = nn.Sequential(
+        #    nn.Linear(embed_dim*2, hidden_dim),
+        #    nn.ReLU(),
+        #    nn.Linear(hidden_dim, embed_dim)
+        #)
     
     def forward(self, atom_indices):
         valence_vectors = self.valence_embeds(atom_indices)
         core_vectors = self.valence_embeds(atom_indices)
-        return self.merge(torch.cat([valence_vectors, core_vectors]), dim=-1)
+        return torch.cat([valence_vectors, core_vectors], dim=-1)
 

@@ -49,11 +49,11 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/ocp/data/is2re/all --valid-subset val_id,val_ood_ads,val_ood_cat,val_ood_both \
+       /scratch/hdd001/home/$USER/ocp/element_data/1 --valid-subset 5,17,37,55,75,81 \
        --train-subset train --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
-       --task is2re --criterion mae_deltapos --arch graphormer3dsubatom_base  \
-       --atom-embed-path element_tensors2.pt \
+       --task is2re --criterion mae_deltapos --arch graphormer3dsubshell_base  \
+       --core-embed-path element_tensors/core_configs.pt --valence-embed-path element_tensors/valence_configs.pt \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
        --lr-scheduler polynomial_decay --lr $lr --warmup-updates $warmup_steps --total-num-update $total_steps --batch-size $batch_size \
        --dropout 0.0 --attention-dropout 0.1 --weight-decay 0.001 --update-freq $update_freq --seed $seed \
