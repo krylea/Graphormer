@@ -27,7 +27,7 @@ class SubshellEmbedding(nn.Module):
     def __init__(self, embed_dim, n_max, l_max, atom_configs, occupancy_correction=False):
         super().__init__()
         self.embed_dim = embed_dim
-        self.atom_configs = atom_configs    # Nele x nmax*lmax
+        self.register_buffer('atom_configs', atom_configs)   # Nele x nmax*lmax
         self.subshell_embeds = nn.Parameter(torch.empty(n_max * l_max, embed_dim))
         self.occupancy_correction = occupancy_correction
         if occupancy_correction:
