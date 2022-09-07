@@ -24,7 +24,7 @@ class FixedAtomEmbedding(nn.Module):
 
 
 class SubshellEmbedding(nn.Module):
-    def __init__(self, embed_dim, n_max, l_max, atom_configs, occupancy_correction=False):
+    def __init__(self, embed_dim, n_max, l_max, atom_configs, occupancy_correction=False, mode='train'):
         super().__init__()
         self.embed_dim = embed_dim
         augmented_configs = torch.cat([torch.zeros(1,n_max*l_max), atom_configs], dim=0)
@@ -34,12 +34,22 @@ class SubshellEmbedding(nn.Module):
         if occupancy_correction:
             self.occupancy_embeds = nn.Parameter(torch.empty(n_max * l_max, embed_dim))
 
+        self.mode = mode
+        self.corrections = None
+
         self.init_params()
     
     def init_params(self):
         nn.init.normal_(self.subshell_embeds)
         if self.occupancy_correction:
             nn.init.normal_(self.occupancy_embeds)
+
+    def set_finetune(self, n_atom):
+        self.corrections = nn.Embedding(n_atom+1, self.embed_dim, padding_idx=0)
+        self.subshell_embeds.requires_grad_(False)
+        if self.occupancy_correction:
+            self.occupancy_embeds.requires_grad_(False)
+        self.mode='finetune'
 
     def forward(self, atom_indices):
         atom_repr = self.atom_configs[atom_indices] # bs x n_atom x nmax*lmax
@@ -51,6 +61,13 @@ class SubshellEmbedding(nn.Module):
             base_atom_vectors = (base_atom_repr.unsqueeze(-1) * self.subshell_embeds.view(1, 1, *self.subshell_embeds.size())).sum(dim=-2)
             occupancy_vectors = (occupancy_repr.unsqueeze(-1) * self.occupancy_embeds.view(1, 1, *self.occupancy_embeds.size())).sum(dim=-2)
             atom_vectors = base_atom_vectors + occupancy_vectors
+        
+        if self.corrections is not None:
+            # could also just save fixed vectors for all atoms once training is done so we dont have to recalculate the above every time, 
+            # but idk if the overhead actually matters
+            corrections = self.corrections[atom_indices]
+            atom_vectors += corrections
+
         return atom_vectors
 
 class SubshellValenceEmbedding(nn.Module):
@@ -69,9 +86,74 @@ class SubshellValenceEmbedding(nn.Module):
         #    nn.ReLU(),
         #    nn.Linear(hidden_dim, embed_dim)
         #)
+        self.mode='train'
+
+    def set_finetune(self, n_atom):
+        self.mode = 'finetune'
+        self.valence_embeds.set_finetune(n_atom)
+        self.core_embeds.set_finetune(n_atom)
     
     def forward(self, atom_indices):
         valence_vectors = self.valence_embeds(atom_indices)
         core_vectors = self.core_embeds(atom_indices)
         return torch.cat([valence_vectors, core_vectors], dim=-1)
 
+
+import math
+
+class RBFSubatom(nn.Module):
+    def __init__(self, K, embed_dim, hidden_dim):
+        super().__init__()
+        self.K = K
+        self.means = nn.parameter.Parameter(torch.empty(K))
+        self.temps = nn.parameter.Parameter(torch.empty(K))
+
+        self.embed_dim = embed_dim
+        self.net = nn.Sequential(
+            nn.Linear(embed_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 2)
+        )
+
+        nn.init.uniform_(self.means, 0, 3)
+        nn.init.uniform_(self.temps, 0.1, 10)
+        #nn.init.constant_(self.bias.weight, 0)
+        #nn.init.constant_(self.mul.weight, 1)
+
+        self.mode = 'train'
+
+    def set_finetune(self, n_atom):
+        self.n_atom = n_atom
+        self.mul_correction = nn.Embedding(n_atom*n_atom, 1)
+        self.bias_correction = nn.Embedding(n_atom*n_atom, 1)
+        nn.init.constant_(self.bias_correction.weight, 0)
+        nn.init.constant_(self.mul_correction.weight, 0)
+        self.lambda_mul = nn.Parameter(torch.tensor([1.]))
+        self.lambda_bias = nn.Parameter(torch.tensor([1.]))
+        for p in self.net.parameters():
+            p.requires_grad_(False)
+        self.mode='finetune'
+
+    def forward(self, x, atom_embeds, atom_indices=None):
+        n_graph, n_node = atom_embeds.size()[:2]
+        edge_features = self.net(
+            torch.cat([
+                atom_embeds.view(n_graph, n_node, 1, self.embed_dim).expand(n_graph, n_node, n_node, self.embed_dim), 
+                atom_embeds.view(n_graph, 1, n_node, self.embed_dim).expand(n_graph, n_node, n_node, self.embed_dim)
+            ], dim=-1)
+        ) / math.sqrt(self.embed_dim * 2)
+        mul, bias = edge_features.chunk(2, dim=-1)
+
+        if self.mul_correction is not None and self.bias_correction is not None and atom_indices is not None:
+            edge_types = atom_indices.view(n_graph, n_node, 1) * self.atom_types + atom_indices.view(
+                n_graph, 1, n_node
+            )
+            mul_corr = self.mul_correction(edge_types)
+            bias_corr = self.bias_correction(edge_types)
+            mul = self.lambda_mul * mul + (1-self.lambda_mul) * mul_corr
+            bias = self.lambda_bias * bias + (1-self.lambda_bias) * bias_corr
+
+        x = mul * x.unsqueeze(-1) + bias
+        mean = self.means.float()
+        temp = self.temps.float().abs()
+        return ((x - mean).square() * (-temp)).exp().type_as(self.means)

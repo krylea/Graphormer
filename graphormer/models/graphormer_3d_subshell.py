@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from .subatom_modules import SubshellEmbedding, SubshellValenceEmbedding
+from .subatom_modules import SubshellEmbedding, SubshellValenceEmbedding, RBFSubatom
 
 from typing import Callable, Tuple
 
@@ -136,27 +136,6 @@ class Graphormer3DEncoderLayer(nn.Module):
         return x
 
 
-class RBFSubatom(nn.Module):
-    def __init__(self, K):
-        super().__init__()
-        self.K = K
-        self.means = nn.parameter.Parameter(torch.empty(K))
-        self.temps = nn.parameter.Parameter(torch.empty(K))
-        #self.mul: Callable[..., Tensor] = nn.Linear(embed_dim*2, 1)#nn.Embedding(edge_types, 1)
-        #self.bias: Callable[..., Tensor] = nn.Linear(embed_dim*2, 1)#nn.Embedding(edge_types, 1)
-        nn.init.uniform_(self.means, 0, 3)
-        nn.init.uniform_(self.temps, 0.1, 10)
-        #nn.init.constant_(self.bias.weight, 0)
-        #nn.init.constant_(self.mul.weight, 1)
-
-    def forward(self, x: Tensor, edge_features):
-        #mul = self.mul(edge_types)
-        #bias = self.bias(edge_types)
-        mul, bias = edge_features.chunk(2, dim=-1)
-        x = mul * x.unsqueeze(-1) + bias
-        mean = self.means.float()
-        temp = self.temps.float().abs()
-        return ((x - mean).square() * (-temp)).exp().type_as(self.means)
 
 
 class NonLinear(nn.Module):
@@ -248,6 +227,11 @@ class Graphormer3DSubshell(BaseFairseqModel):
             help="atom representation file path",
         )
         parser.add_argument(
+            "--occupancy-embed",
+            action='store_true',
+            help="whether to use occupancy correction",
+        )
+        parser.add_argument(
             "--embed-dim",
             type=int,
             metavar="H",
@@ -307,13 +291,7 @@ class Graphormer3DSubshell(BaseFairseqModel):
         super().__init__()
         self.args = args
 
-        self.atom_embedding = SubshellValenceEmbedding.from_file(args.valence_embed_path, args.core_embed_path, args.embed_dim//2, -1, 7, 4, False)
-
-        self.dist_encoder = nn.Sequential(
-            nn.Linear(self.args.embed_dim * 2, self.args.embed_dim * 2),
-            nn.ReLU(),
-            nn.Linear(self.args.embed_dim * 2, 2)
-        )
+        self.atom_embedding = SubshellValenceEmbedding.from_file(args.valence_embed_path, args.core_embed_path, args.embed_dim//2, args.embed_dim, 7, 4, False)
 
         self.tag_encoder = nn.Embedding(3, self.args.embed_dim)
         self.input_dropout = self.args.input_dropout
@@ -341,7 +319,7 @@ class Graphormer3DSubshell(BaseFairseqModel):
 
         K = self.args.num_kernel
 
-        self.rbf: Callable[[Tensor, Tensor], Tensor] = RBFSubatom(K)
+        self.rbf: Callable[[Tensor, Tensor], Tensor] = RBFSubatom(K, self.args.embed_dim, self.args.embed_dim*2)
         self.bias_proj: Callable[[Tensor], Tensor] = NonLinear(
             K, self.args.attention_heads
         )
@@ -350,6 +328,9 @@ class Graphormer3DSubshell(BaseFairseqModel):
             self.args.embed_dim, self.args.attention_heads
         )
         
+    def set_finetune(self, n_atom):
+        self.atom_embedding.set_finetune(n_atom)
+        self.rbf.set_finetune(n_atom)
 
     def set_num_updates(self, num_updates):
         self.num_updates = num_updates
@@ -365,20 +346,7 @@ class Graphormer3DSubshell(BaseFairseqModel):
 
         atom_embeds = self.atom_embedding(atoms)
 
-        emb_dim = atom_embeds.size(-1)
-        edge_embeds = self.dist_encoder(
-            torch.cat([
-                atom_embeds.view(n_graph, n_node, 1, emb_dim).expand(n_graph, n_node, n_node, emb_dim), 
-                atom_embeds.view(n_graph, 1, n_node, emb_dim).expand(n_graph, n_node, n_node, emb_dim)
-            ], dim=-1)
-        ) / math.sqrt(emb_dim * 2)
-    
-
-        #edge_type = atoms.view(n_graph, n_node, 1) * self.atom_types + atoms.view(
-        #    n_graph, 1, n_node
-        #)
-
-        rbf_feature = self.rbf(dist, edge_embeds)
+        rbf_feature = self.rbf(dist, atom_embeds, atom_indices=atoms)
         edge_features = rbf_feature.masked_fill(
             padding_mask.unsqueeze(1).unsqueeze(-1), 0.0
         )
