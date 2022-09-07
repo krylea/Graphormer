@@ -280,7 +280,7 @@ class IS2RETask(FairseqTask):
         lmdb_dataset = LMDBDataset(db_path)
         pbc_dataset = PBCDataset(lmdb_dataset)
 
-        atoms = AtomDataset(pbc_dataset, "atoms", add_atoms=self.cfg.add_atoms)
+        atoms = KeywordDataset(pbc_dataset, "atoms")#AtomDataset(pbc_dataset, "atoms", add_atoms=self.cfg.add_atoms)
         tags = KeywordDataset(pbc_dataset, "tags")
         real_mask = KeywordDataset(pbc_dataset, "real_mask")
 
