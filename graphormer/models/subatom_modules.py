@@ -121,6 +121,8 @@ class RBFSubatom(nn.Module):
         #nn.init.constant_(self.mul.weight, 1)
 
         self.mode = 'train'
+        self.bias_correction = None
+        self.mul_correction = None
 
     def set_finetune(self, n_atom):
         self.n_atom = n_atom
