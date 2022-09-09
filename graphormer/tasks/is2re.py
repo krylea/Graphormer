@@ -198,6 +198,7 @@ class AtomDataset(FairseqDataset):
             81,
             82,
             83,
+            58  #add cerium
         ]
         # fill others as unk
         unk_idx = len(self.atom_list) + 1
