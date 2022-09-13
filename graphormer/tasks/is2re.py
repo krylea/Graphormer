@@ -255,6 +255,7 @@ class IS2RETask(FairseqTask):
         parser.add_argument("data", metavar="FILE", help="directory for data")
         parser.add_argument("--add_atoms", nargs='+', type=int, default=(), help="additional atoms to add")
         parser.add_argument("--freeze", action='store_true', help="freeze weights")
+        parser.add_argument("--all_atoms", action='store_true', help="use all atoms instead of fixed list (for subshell)")
 
     @property
     def target_dictionary(self):
@@ -281,7 +282,7 @@ class IS2RETask(FairseqTask):
         lmdb_dataset = LMDBDataset(db_path)
         pbc_dataset = PBCDataset(lmdb_dataset)
 
-        atoms = AtomDataset(pbc_dataset, "atoms", add_atoms=self.cfg.add_atoms)#KeywordDataset(pbc_dataset, "atoms")#
+        atoms = AtomDataset(pbc_dataset, "atoms", add_atoms=self.cfg.add_atoms) if not self.cfg.all_atoms else KeywordDataset(pbc_dataset, "atoms")
         tags = KeywordDataset(pbc_dataset, "tags")
         real_mask = KeywordDataset(pbc_dataset, "real_mask")
 
