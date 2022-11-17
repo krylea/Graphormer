@@ -8,6 +8,6 @@ for (( i=0; i<$folds; i++ ))
 do
     for model in "${MODELS[@]}"
     do
-        sbatch finetune_carol.sh "kfold_${dataset}/${model}_${i}" $model "${dataset}/${i}"
+        sbatch finetune_carol.sh "kfold_${dataset}/${model}_${i}" $model "${dataset}/kfold/${i}"
     done
 done
