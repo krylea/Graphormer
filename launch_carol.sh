@@ -13,10 +13,11 @@
 source /scratch/hdd001/home/kaselby/graphormer-env-10.2/bin/activate
 
 run_name=$1
+datapath=$2
 
 lr=${lr:-3e-4}
-warmup_steps=${warmup_steps:-10000}
-total_steps=${total_steps:-1000000}
+warmup_steps=${warmup_steps:-0}
+total_steps=${total_steps:-5000}
 layers=${layers:-12}
 hidden_size=${hidden_size:-768}
 num_head=${num_head:-48}
@@ -49,7 +50,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/ocp/element_data/1 --valid-subset 5,17,37,55,75,81 \
+       /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val \
        --train-subset train --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
