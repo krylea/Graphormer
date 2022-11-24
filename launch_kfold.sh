@@ -11,5 +11,5 @@ do
         sbatch finetune_carol.sh "kfold_${dataset}/${model}_${i}" $model "${dataset}/kfold/${i}"
     done
 
-    sbatch launch_oc20.sh "kfold_${dataset}/nofinetune_${i}" "${dataset}/kfold/${i}"
+    sbatch launch_carol.sh "kfold_${dataset}/nofinetune_${i}" "${dataset}/kfold/${i}"
 done
