@@ -50,7 +50,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val \
+       /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val  --disable-validation \
        --train-subset train --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
