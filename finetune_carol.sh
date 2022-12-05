@@ -71,7 +71,7 @@ echo "tsb_dir: ${tsb_dir}"
 echo "==============================================================================="
 
 fairseq-train --user-dir ./graphormer  \
-       /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val --best-checkpoint-metric loss \
+       /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val --best-checkpoint-metric loss --disable-validation \
        --num-workers 0 --ddp-backend=c10d \
        --task is2re --criterion mae_deltapos --arch $arch  \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
