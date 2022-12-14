@@ -53,7 +53,7 @@ fairseq-train --user-dir ./graphormer  \
        /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val  --disable-validation \
        --train-subset train --best-checkpoint-metric loss \
        --num-workers 0 --ddp-backend=c10d \
-       --task is2re --criterion mae_deltapos --arch graphormer3d_base  \
+       --task is2re --criterion mae_deltapos --arch graphormer3d_base --add_atoms 58 \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
        --lr-scheduler polynomial_decay --lr $lr --warmup-updates $warmup_steps --total-num-update $total_steps --batch-size $batch_size \
        --dropout 0.0 --attention-dropout 0.1 --weight-decay 0.001 --update-freq $update_freq --seed $seed \
