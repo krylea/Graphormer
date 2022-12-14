@@ -135,7 +135,7 @@ def parity_plot(splits, title=None, bounds=[-8,0,-8,0]):
     plt.show()
 
 def get_run_results(run_name, dataset, checkpoint_dir="ckpts", splits=["train", "val", "test"], dataset_dir="/h/carolyu/kira_code/lmdbs"):
-    cfg, task, model, criterion = load_checkpoint(os.path.join(checkpoint_dir, run_name))
+    cfg, task, model, criterion = load_checkpoint(os.path.join(checkpoint_dir, run_name, "checkpoint_last.pt"))
 
     data_dir = os.path.join(dataset_dir, dataset)
     print("%s Results:" % run_name)
