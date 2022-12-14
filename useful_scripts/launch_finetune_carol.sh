@@ -8,4 +8,4 @@ do
     sbatch finetune_carol.sh "finetune_carol_${dataset}_${model}" $model $dataset
 done
 
-sbatch launch_carol.sh "finetune_carol_${dataset}_nofinetune" $dataset
+sbatch train_carol.sh "finetune_carol_${dataset}_nofinetune" $dataset
