@@ -210,7 +210,7 @@ class AtomDataset(FairseqDataset):
         if len(add_atoms) > 0:
             self.add_atoms = add_atoms
             for i, atom_idx in enumerate(add_atoms):
-                #self.atom_list.append(atom_idx)
+                self.atom_list.append(atom_idx)
                 self.atom_mapper[atom_idx] = unk_idx + 1 + i
 
 

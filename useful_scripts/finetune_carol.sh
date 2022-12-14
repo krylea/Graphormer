@@ -5,7 +5,7 @@
 #SBATCH --output=logs/slurm-%j.txt
 #SBATCH --open-mode=append
 #SBATCH --ntasks=1
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:2
 #SBATCH --partition=t4v1,t4v2,p100,rtx6000
 #SBATCH --cpus-per-gpu=1
 #SBATCH --mem=25GB
@@ -73,7 +73,7 @@ echo "==========================================================================
 fairseq-train --user-dir ./graphormer  \
        /scratch/hdd001/home/$USER/carol-lmdbs/$datapath --valid-subset val --best-checkpoint-metric loss --disable-validation \
        --num-workers 0 --ddp-backend=c10d \
-       --task is2re --criterion mae_deltapos --arch $arch  \
+       --task is2re --criterion mae_deltapos --arch $arch --add_atoms 58 \
        --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm $clip_norm \
        --lr-scheduler polynomial_decay --lr $lr --warmup-updates $warmup_steps --total-num-update $total_steps --batch-size $batch_size \
        --dropout 0.0 --attention-dropout 0.1 --weight-decay 0.001 --update-freq $update_freq --seed $seed \
