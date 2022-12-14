@@ -140,7 +140,7 @@ def get_run_results(run_name, dataset, checkpoint_dir="ckpts", splits=["train", 
     data_dir = os.path.join(dataset_dir, dataset)
     print("%s Results:" % run_name)
     for split in splits:
-        if not os.path.exists(data_dir, split, "data.lmdb"):
+        if not os.path.exists(os.path.join(data_dir, split, "data.lmdb")):
             continue
         else:
             y_pred, y_true = eval_split(cfg, task, model, criterion, split, dataset=data_dir)
