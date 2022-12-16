@@ -13,9 +13,9 @@ do
         folder = "$prefix_${dataset}/${model}_${i}"
         if [ ! -a "${folder}/checkpoint_last.pt" ]
         then
-            sbatch finetune_carol.sh $folder $model "${dataset}/kfold/${i}"
+            sbatch useful_scripts/finetune_carol.sh $folder $model "${dataset}/kfold/${i}"
         fi
     done
 
-    #sbatch launch_carol.sh "$prefix_${dataset}/nofinetune_${i}" "${dataset}/kfold/${i}"
+    #sbatch useful_scripts/launch_carol.sh "$prefix_${dataset}/nofinetune_${i}" "${dataset}/kfold/${i}"
 done
