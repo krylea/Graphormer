@@ -11,7 +11,7 @@ do
     for model in "${MODELS[@]}"
     do
         folder="$prefix_${dataset}/${model}_${i}"
-        if [ ! -a "${folder}/checkpoint_last.pt" ]
+        if [ ! -a "ckpts/${folder}/checkpoint_last.pt" ]
         then
             sbatch useful_scripts/finetune_carol.sh $folder $model "${dataset}/kfold/${i}"
         fi
