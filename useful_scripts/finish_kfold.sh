@@ -10,7 +10,7 @@ for (( i=0; i<$folds; i++ ))
 do
     for model in "${MODELS[@]}"
     do
-        folder = "$prefix_${dataset}/${model}_${i}"
+        folder="$prefix_${dataset}/${model}_${i}"
         if [ ! -a "${folder}/checkpoint_last.pt" ]
         then
             sbatch useful_scripts/finetune_carol.sh $folder $model "${dataset}/kfold/${i}"
