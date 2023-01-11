@@ -4,7 +4,7 @@
 
 
 # install requirements
-pip install torch==1.9.1+cu102 torchaudio -f https://download.pytorch.org/whl/cu102/torch_stable.html
+pip install torch==1.9.1+cu102 torchaudio==0.9.1 -f https://download.pytorch.org/whl/cu102/torch_stable.html
 # install torchaudio, thus fairseq installation will not install newest torchaudio and torch(would replace torch-1.9.1)
 pip install lmdb
 pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.9.1+cu102.html
@@ -18,5 +18,6 @@ pip install dgl==0.7.2 -f https://data.dgl.ai/wheels/repo.html
 cd fairseq
 # if fairseq submodule has not been checkouted, run:
 # git submodule update --init --recursive
-pip install . --use-feature=in-tree-build
+#pip install . --use-feature=in-tree-build
+pip install .
 python setup.py build_ext --inplace
